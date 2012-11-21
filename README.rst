@@ -47,6 +47,11 @@ Setting up alias
 
   .. image :: https://github.com/downloads/collective/collective.portletalias/Screen%20Shot%202012-11-21%20at%2010.44.02%20PM.png
 
+Source code
+=============
+
+* https://github.com/collective/collective.portletalias
+
 Author
 ========
 
