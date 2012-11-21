@@ -7,14 +7,19 @@ Allow "alias" portlets from other locations to show in the current folder in `Pl
 This is useful if you need to have the same portlet to pop-up in different unrelated locations
 and you want to have only one copy for the site editors to maintain the portlet content.
 
+* Go to Manage portlets
+
+* Choose Add new portlet... Alias
+
+* Enter the path to the source folder
+
+* Enter the portlet id of the source portlet. This add-on provides @@portlet-data view which dumps
+  out the folder portlet info and related its.
+
 Installation
 ============
 
 * http://plone.org/documentation/kb/installing-add-ons-quick-how-to/
-
-.. note ::
-
-    Plone 4.1+ and Python 2.7 required. Easy to backport for earlier versions if needed.
 
 portlet-data helper view
 =========================
@@ -24,25 +29,6 @@ show debug information about the portlets assigned there.
 Admin priviledges needed.
 
 .. image :: http://cloud.github.com/downloads/collective/collective.portletalias/Screen%20Shot%202012-11-21%20at%209.28.53%20PM.png
-
-.. note ::
-
-    If you have a default item set (like front-page) for the content append
-    /front-page/@@portlet-data to URL to see all the portlets.
-
-Setting up alias
-==================
-
-* Go to Manage portlets view in the target folder
-
-* Choose *Add new portlet...* *Alias Portlet*
-
-* Enter the path to the source folder
-
-* Enter the portlet id of the source portlet. This add-on provides @@portlet-data view which dumps
-  out the folder portlet info and related its.
-
-Installation
 
 Author
 ========

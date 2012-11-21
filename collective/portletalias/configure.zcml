@@ -10,9 +10,9 @@
 
   <genericsetup:registerProfile
       name="default"
-      title="collective.portletalias"
+      title="Alias portlet"
       directory="profiles/default"
-      description="Installs the collective.portletalias package"
+      description=""
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
   <!-- -*- extra stuff goes here -*- -->

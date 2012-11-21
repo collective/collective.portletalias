@@ -1,5 +1,10 @@
-from zope.interface import Interface
+import logging
+import cgi
+
+from ZODB.POSException import ConflictError
 from zope.interface import implements
+from zope.interface import Interface
+from zope.component import getMultiAdapter
 
 from plone.app.portlets.portlets import base
 from plone.portlets.interfaces import IPortletDataProvider
@@ -10,8 +15,13 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
 from collective.portletalias import portletaliasMessageFactory as _
 
+from collective.portletalias import utils
+
 from zope.i18nmessageid import MessageFactory
 __ = MessageFactory("plone")
+
+
+logger = logging.getLogger("portletalias")
 
 
 class IAliasPortlet(IPortletDataProvider):
@@ -27,15 +37,15 @@ class IAliasPortlet(IPortletDataProvider):
     # empty interface - see also notes around the add form and edit form
     # below.
 
-    path = schema.TextLine(title=_(u"Path"),
-                                  description=_(u"Site root relative path where the other portlet is assigned"),
+    path = schema.ASCIILine(title=_(u"Path"),
+                                  description=_(u"Site root relative path where the other portlet is assigned. E.g. /front-page"),
                                   required=True)
 
-    provider = schema.TextLine(title=_(u"Provider"),
+    provider = schema.ASCIILine(title=_(u"Provider"),
                                   description=_(u"Portlet provider id. E.g. plone.leftcolumn or plone.rightcolumn"),
                                   required=True)
 
-    assignmentId = schema.TextLine(title=_(u"Portlet id"),
+    assignmentId = schema.ASCIILine(title=_(u"Assignment name"),
                                   description=_(u"What's the portlet id of the assignment. Use @@portlet-info view to show out"),
                                   required=True)
 
@@ -49,23 +59,15 @@ class Assignment(base.Assignment):
 
     implements(IAliasPortlet)
 
-    # TODO: Set default values for the configurable parameters here
-
-    # some_field = u""
-
-    # TODO: Add keyword parameters for configurable parameters here
-    # def __init__(self, some_field=u''):
-    #    self.some_field = some_field
-
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
     @property
     def title(self):
         """This property is used to give the title of the portlet in the
         "manage portlets" screen.
         """
-        return __(u"Alias Portlet")
+        return "%s %s" % (getattr(self, "assignmentId", None), " alias")
 
 
 class Renderer(base.Renderer):
@@ -76,7 +78,59 @@ class Renderer(base.Renderer):
     of this class. Other methods can be added and referenced in the template.
     """
 
-    render = ViewPageTemplateFile('aliasportlet.pt')
+    def cookError(self, message):
+        """
+        Generate error HTML payload
+        """
+        return "<p class='error portlet-alias-error'>%s</p>" % cgi.escape(message)
+
+    def cookPortletHTML(self):
+        """
+        Wicked witch's cauldron.
+
+        Render the target portlet in the target context and grabs its HTML.
+        """
+
+        context = self.context.aq_inner
+
+        portal_state = getMultiAdapter((context, self.request), name=u'plone_portal_state')
+
+        portal = portal_state.portal()
+
+        if not self.data.path:
+            return self.cookError("No path set")
+
+        path = self.data.path.strip("/")
+
+        try:
+            targetContext = portal.unrestrictedTraverse(path)
+        except KeyError:
+            return self.cookError("Unknown content item path: %s" % path)
+
+        provider = self.data.provider.strip()
+
+        try:
+            manager = utils.get_portlet_manager(provider)
+        except ConflictError:
+            raise
+        except Exception, e:
+            logger.exception(e)
+            return self.cookError("Unknown portlet manager: %s" % provider)
+
+        assignmentId = self.data.assignmentId.strip()
+
+        try:
+            html = utils.render_portlet(targetContext, self.request, None, manager, assignmentId)
+        except ConflictError:
+            raise
+        except Exception, e:
+            logger.exception(e)
+            return self.cookError("Got exception when rendering the aliased portlet %s: %s" % (assignmentId, e))
+
+        return html
+
+    def render(self):
+        return self.cookPortletHTML()
 
 
 # NOTE: If this portlet does not have any configurable parameters, you can

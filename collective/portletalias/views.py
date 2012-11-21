@@ -52,7 +52,7 @@ class PortletData(BrowserView):
             # id is portlet assignment id
             # and automatically generated
             for id, assignment in mapping.items():
-                print "Found portlet assignment:" + id + " " + str(assignment)
+                #print "Found portlet assignment:" + id + " " + str(assignment)
                 items.append({
                     "name": id,
                     "data": dump_schemed_data(assignment)
