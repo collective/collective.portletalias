@@ -15,10 +15,6 @@ Install package as ``collective.portletalias`` and then install in Add on setup.
 
 * http://plone.org/documentation/kb/installing-add-ons-quick-how-to/
 
-.. note ::
-
-    Plone 4.1+ and Python 2.7 required. Easy to backport for earlier versions if needed.
-
 @@portlet-data helper view
 ===========================
 

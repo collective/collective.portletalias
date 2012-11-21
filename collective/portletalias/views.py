@@ -1,4 +1,8 @@
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    # Py 2.6 fallback
+    from odict import odict as OrderedDict
 
 import zope.schema
 
@@ -8,6 +12,8 @@ from Products.Five import BrowserView
 
 from plone.portlets.interfaces import IPortletManager
 from plone.portlets.interfaces import IPortletAssignmentMapping
+
+
 
 
 def dump_schemed_data(obj):
