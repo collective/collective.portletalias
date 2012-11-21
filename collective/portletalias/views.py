@@ -1,12 +1,32 @@
-from zope.interface import implements, Interface
+from collections import OrderedDict
+
+import zope.schema
+
 from zope.component import getUtility, getMultiAdapter
 
 from Products.Five import BrowserView
-from Products.CMFCore.utils import getToolByName
 
 from plone.portlets.interfaces import IPortletManager
-from plone.portlets.interfaces import IPortletAssignment
 from plone.portlets.interfaces import IPortletAssignmentMapping
+
+
+def dump_schemed_data(obj):
+    """
+    Prints out object variables as defined by its zope.schema Interface.
+    """
+    out = OrderedDict()
+
+    # Check all interfaces provided by the object
+    ifaces = obj.__provides__.__iro__
+
+    # Check fields from all interfaces
+    for iface in ifaces:
+        fields = zope.schema.getFieldsInOrder(iface)
+        for name, field in fields:
+            # ('header', <zope.schema._bootstrapfields.TextLine object at 0x1149dd690>)
+            out[name] = getattr(obj, name, None)
+
+    return out
 
 
 class PortletData(BrowserView):
@@ -24,8 +44,6 @@ class PortletData(BrowserView):
 
         for manager_name in ["plone.leftcolumn", "plone.rightcolumn"]:
 
-            print "Checking portlet column:" + manager_name
-
             manager = getUtility(IPortletManager, name=manager_name, context=content)
 
             mapping = getMultiAdapter((content, manager), IPortletAssignmentMapping)
@@ -37,7 +55,7 @@ class PortletData(BrowserView):
                 print "Found portlet assignment:" + id + " " + str(assignment)
                 items.append({
                     "name": id,
-                    "data": assignment
+                    "data": dump_schemed_data(assignment)
                 })
 
             managers.append({
@@ -45,6 +63,5 @@ class PortletData(BrowserView):
                 "items": items
             })
 
-        print str(managers)
         return managers
 
